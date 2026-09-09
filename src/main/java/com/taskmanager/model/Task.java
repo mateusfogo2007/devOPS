@@ -1,16 +1,14 @@
 package com.taskmanager.model;
 
 public class Task {
-    // Atributos da tarefa, protegidos (private)
+    
     private Long id;
     private String title;
     private boolean done;
 
-    // Construtor vazio (necessário para o Spring Boot)
     public Task() {
     }
 
-    // Getters e Setters (métodos para acessar e modificar os dados de forma segura)
     public Long getId() {
         return id;
     }
