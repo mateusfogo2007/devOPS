@@ -1,4 +1,4 @@
-package com.exemplo.taskmanager.model; // Ajuste para o pacote real do seu projeto
+package com.taskmanager.model;
 
 public class Task {
     // Atributos da tarefa, protegidos (private)
