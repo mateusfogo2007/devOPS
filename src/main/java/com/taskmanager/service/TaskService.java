@@ -1,6 +1,6 @@
-package com.exemplo.taskmanager.service; // Ajuste para o pacote real do seu projeto
+package com.taskmanager.service;
 
-import com.exemplo.taskmanager.model.Task;
+import com.taskmanager.model.Task;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
