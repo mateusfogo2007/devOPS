@@ -1,6 +1,6 @@
 # Task Manager
 
-API REST de gerenciamento de tarefas, desenvolvida em Java 17 + Spring Boot, para a disciplina de Integração DevOps (Marco 1 — CI e Conteinerização Inicial).
+API REST de gerenciamento de tarefas, feita em Java 17 + Spring Boot, para a disciplina de Integração DevOps (Marco 1 - CI e Conteinerização Inicial).
 
 ## Como rodar localmente
 
@@ -33,6 +33,23 @@ docker build -t task-manager .
 docker run -p 8080:8080 task-manager
 ```
 
+## Docker Compose (aplicação + PostgreSQL)
+
+Para subir a aplicação junto com o banco:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Antes de subir, abra o `.env` e coloque o usuário e a senha do banco. O arquivo `.env` não vai pro Git, e o compose não sobe sem essas variáveis.
+
+Depois confira se os dois serviços estão saudáveis com `docker compose ps` e teste com `curl http://localhost:8080/tasks`.
+
+Para parar tudo: `docker compose down` (com `-v` apaga também o volume do banco).
+
+Existe também o workflow `.github/workflows/compose-test.yml`, que sobe os containers a cada PR e testa a API.
+
 ## CI
 
-O pipeline (`.github/workflows/ci.yml`) roda automaticamente o build, os testes e a validação da imagem Docker a cada Pull Request ou push na `main`.
+O pipeline (`.github/workflows/ci.yml`) roda o build, os testes e a validação da imagem Docker a cada Pull Request ou push na `main`.

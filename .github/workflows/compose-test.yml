@@ -1,0 +1,60 @@
+name: Teste do Docker Compose
+
+# Sobe o banco e a API e testa se a API responde.
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'pom.xml'
+      - 'src/**'
+      - '.github/workflows/compose-test.yml'
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  compose-up:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar .env temporario
+        run: |
+          echo "DB_NAME=taskdb" > .env
+          echo "DB_USER=ci_user" >> .env
+          echo "DB_PASSWORD=$(openssl rand -hex 16)" >> .env
+
+      - name: Validar o docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Subir os containers
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Ver status dos containers
+        if: always()
+        run: docker compose ps
+
+      - name: Testar a API
+        run: |
+          set -e
+          curl -fsS -X POST http://localhost:8080/tasks \
+            -H "Content-Type: application/json" \
+            -d '{"title":"tarefa do pipeline","done":false}'
+          echo
+          curl -fsS http://localhost:8080/tasks | grep -q "tarefa do pipeline"
+          echo "API ok"
+
+      - name: Testar o banco
+        run: docker compose exec -T postgres-db sh -c 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+      - name: Mostrar logs se falhar
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Derrubar tudo
+        if: always()
+        run: docker compose down -v
