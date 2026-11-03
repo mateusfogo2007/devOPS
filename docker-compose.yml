@@ -1,12 +1,8 @@
-# Orquestração local da Task Manager API (Avaliação A2)
-# Uso:
-#   1. cp .env.example .env   (e defina DB_USER / DB_PASSWORD)
-#   2. docker compose up -d --build
-#   3. API em http://localhost:8080/tasks
-#   Rollback: defina APP_IMAGE com a tag estavel (ver comentario no servico app)
-#
-# As credenciais NÃO ficam neste arquivo: são lidas do .env (ignorado pelo Git)
-# ou das variáveis de ambiente / Secrets do pipeline.
+# Sobe a API junto com o banco PostgreSQL.
+# Antes de rodar: cp .env.example .env e preencher usuario e senha do banco.
+# Depois: docker compose up -d --build
+# A API fica em http://localhost:8080/tasks
+# A senha nao fica aqui, ela vem do .env (que nao vai pro Git).
 
 services:
   postgres-db:
@@ -31,8 +27,8 @@ services:
 
   app:
     build: .
-    # Padrao: build local. Para rodar/rollback de uma versao publicada no GHCR:
-    #   APP_IMAGE=ghcr.io/mateusfogo2007/devops:1.0.0 docker compose up -d --no-build app
+    # por padrao builda a imagem local. Pra usar uma versao do GHCR (rollback):
+    # APP_IMAGE=ghcr.io/mateusfogo2007/devops:1.0.0 docker compose up -d --no-build app
     image: ${APP_IMAGE:-task-manager:local}
     container_name: devops_app
     restart: unless-stopped
