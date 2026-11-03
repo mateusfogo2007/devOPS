@@ -1,0 +1,61 @@
+# Orquestração local da Task Manager API (Avaliação A2)
+# Uso:
+#   1. cp .env.example .env   (e defina DB_USER / DB_PASSWORD)
+#   2. docker compose up -d --build
+#   3. API em http://localhost:8080/tasks
+#   Rollback: defina APP_IMAGE com a tag estavel (ver comentario no servico app)
+#
+# As credenciais NÃO ficam neste arquivo: são lidas do .env (ignorado pelo Git)
+# ou das variáveis de ambiente / Secrets do pipeline.
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: devops_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-taskdb}
+      POSTGRES_USER: ${DB_USER:?Defina DB_USER no arquivo .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - backend
+
+  app:
+    build: .
+    # Padrao: build local. Para rodar/rollback de uma versao publicada no GHCR:
+    #   APP_IMAGE=ghcr.io/mateusfogo2007/devops:1.0.0 docker compose up -d --no-build app
+    image: ${APP_IMAGE:-task-manager:local}
+    container_name: devops_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${DB_NAME:-taskdb}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:?Defina DB_USER no arquivo .env}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env}
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/tasks > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:
