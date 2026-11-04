@@ -53,3 +53,11 @@ Existe também o workflow `.github/workflows/compose-test.yml`, que sobe os cont
 ## CI
 
 O pipeline (`.github/workflows/ci.yml`) roda o build, os testes e a validação da imagem Docker a cada Pull Request ou push na `main`.
+## CD
+
+O pipeline (`.github/workflows/cd.yml`) realiza o deploy automatizado da aplicação após a validação no fluxo de CI.
+
+1. **Gatilhos:** Executado a cada push/merge na branch `main` ou na criação de uma nova `release`.
+2. **Build e Registry:** Gera a nova imagem Docker da aplicação e publica no registro de contêineres.
+3. **Deploy:** Atualiza os serviços no ambiente de destino e executa a reinicialização dos containers via `docker compose`.
+4. **Validação:** Realiza a verificação de saúde (*health check*) garantindo que a nova versão está respondendo em `http://localhost:8080/health`.
